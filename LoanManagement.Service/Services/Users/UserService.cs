@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LoanManagement.Service.Services.Users
 {
-    internal class UserService : IUserService
+    public class UserService : IUserService
     {
         private readonly IRepository<User> userRepositoy;
         public UserService()
@@ -32,14 +32,13 @@ namespace LoanManagement.Service.Services.Users
             return await userRepositoy.SelectAsync(id);
         }
 
-        public async Task<User> LoginAsync(UserLoginModel loginUser, int id)
+        public async Task<User> LoginAsync(UserLoginModel loginUser)
         {
-            var user = await userRepositoy.SelectAsync(id)
-                ?? throw new NotFoundException("User not found");
-            if (user.PasswordHash != loginUser.Password)
-            {
-                throw new UnauthorizedAccessException("Invalid credentials");
-            }
+            var user = await userRepositoy
+                .SelectAllAsQueryable()
+                .FirstOrDefaultAsync(u => u.UserName == loginUser.Username && u.PasswordHash == loginUser.Password);
+            if (user == null)
+                throw new UnauthorizedAccessException("Invalid username or password");
             return user;
         }
 

@@ -12,7 +12,7 @@ namespace LoanManagement.Service.Services.Users
     public interface IUserService
     {
         Task RegisterUserAsync(User user);
-        Task<User> LoginAsync(UserLoginModel loginUser, int id);
+        Task<User> LoginAsync(UserLoginModel loginUser);
         Task ChangePasswordAsync(UserUpdateModel updateUser, int id);
         Task<User?> GetUserByIdAsync(int id);
     }
