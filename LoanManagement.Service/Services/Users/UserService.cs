@@ -18,7 +18,7 @@ namespace LoanManagement.Service.Services.Users
         {
             userRepositoy = new Repository<User>();
         }
-        public async Task ChangePassword(UserUpdateModel updateUser, int id)
+        public async Task ChangePasswordAsync(UserUpdateModel updateUser, int id)
         {
             var user = await userRepositoy.SelectAsync(id)
                 ?? throw new NotFoundException("User not found"); 
@@ -27,26 +27,41 @@ namespace LoanManagement.Service.Services.Users
             _ = userRepositoy.UpdateAsync(user);
         }
 
-        public async Task Login(UserLoginModel loginUser, int id)
+        public async Task<User?> GetUserByIdAsync(int id)
+        {
+            return await userRepositoy.SelectAsync(id);
+        }
+
+        public async Task<User> LoginAsync(UserLoginModel loginUser, int id)
         {
             var user = await userRepositoy.SelectAsync(id)
                 ?? throw new NotFoundException("User not found");
-
-            if (user.PasswordHash != loginUser.Password || user.UserName != loginUser.Username)
+            if (user.PasswordHash != loginUser.Password)
             {
-                throw new BadRequestException("Invalid credentials");
+                throw new UnauthorizedAccessException("Invalid credentials");
             }
+            return user;
         }
 
-        public async Task RegisterUser(UserCreateModel user)
+        public async Task RegisterUserAsync(User user)
         {
+            if (string.IsNullOrWhiteSpace(user.UserName))
+                throw new ArgumentException("Username is required");
+            if (string.IsNullOrWhiteSpace(user.PasswordHash))
+                throw new ArgumentException("Password is required");
+            var existingUser = userRepositoy
+                .SelectAllAsQueryable()
+                .FirstOrDefault(u => u.UserName == user.UserName);
+            if (existingUser == null)
+                throw new Exception("Username already exists");
+
             _ = await userRepositoy.InsertAsync(new User
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
-                PasswordHash = user.Password,
+                PasswordHash = user.PasswordHash,
                 Role = user.Role
             });
         }

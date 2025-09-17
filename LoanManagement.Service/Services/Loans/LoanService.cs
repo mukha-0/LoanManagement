@@ -12,25 +12,45 @@ namespace LoanManagement.Service.Services.Loans
     internal class LoanService : ILoanService
     {
         private readonly IRepository<Loan> loanRepository;
+        private readonly IRepository<Repayment> repaymentRepository = new Repository<Repayment>();
+        private readonly IRepository<Transaction> transactionRepository = new Repository<Transaction>();
         public LoanService()
         {
             loanRepository = new Repository<Loan>();
         }
-        public async Task ApplyForLoan(LoanCreateModel loanCreateModel)
+
+        public async Task<Loan> ApplyForLoanAsync(LoanCreateModel loanCreateModel)
         {
+            if (loanCreateModel.Amount <= 0) throw new ArgumentException("Loan amount must be greater than 0");
+            if (loanCreateModel.TermInMonths <= 0) throw new ArgumentException("Term must be valid");
+
             var loan = new Loan
             {
-                Amount = loanCreateModel.Amount,
-                DurationMonths = loanCreateModel.TermInMonths,
-                InterestRate = loanCreateModel.InterestRate,
-                StartDate = loanCreateModel.StartDate,
                 CustomerId = loanCreateModel.CustomerId,
-                Status = Domain.Enums.LoanStatus.Pending
+                Amount = loanCreateModel.Amount,
+                InterestRate = loanCreateModel.InterestRate,
+                DurationMonths = loanCreateModel.TermInMonths,
+                StartDate = DateTime.UtcNow,
+                EndDate = DateTime.UtcNow.AddMonths(loanCreateModel.TermInMonths),
+                Status = Domain.Enums.LoanStatus.Pending,
             };
+
             await loanRepository.InsertAsync(loan);
+
+
+            var transaction = new Transaction
+            {
+                LoanId = loan.LoanId,
+                Amount = loan.Amount,
+                TransactionDate = DateTime.UtcNow,
+                Description = "Loan Approved"
+            };
+            await transactionRepository.InsertAsync(transaction);
+
+            return loan;
         }
 
-        public async Task ApproveLoan(int loanId, int approvedByUserId)
+        public async Task ApproveLoanAsync(int loanId, int approvedByUserId)
         {
             var loan = await loanRepository.SelectAsync(loanId);
             if (loan == null)
@@ -48,7 +68,7 @@ namespace LoanManagement.Service.Services.Loans
             await loanRepository.UpdateAsync(loan);
         }
 
-        public async Task CalculateInterest(int loanId)
+        public async Task CalculateInterestAsync(int loanId)
         {
             var loan = await loanRepository.SelectAsync(loanId);
             if (loan == null)
@@ -67,7 +87,7 @@ namespace LoanManagement.Service.Services.Loans
             var interest = loan.Amount * (loan.InterestRate / 100) * monthsElapsed;
         }
 
-        public async Task<List<LoanViewModel>> GetActiveLoansByCustomer(int customerId)
+        public async Task<List<LoanViewModel>> GetActiveLoansByCustomerAsync(int customerId)
         {
             var loans = loanRepository
                 .SelectAllAsQueryable()
@@ -92,7 +112,7 @@ namespace LoanManagement.Service.Services.Loans
             return loanViewModels;
         }
 
-        public async Task<List<LoanViewModel>> GetAllLoans()
+        public async Task<List<LoanViewModel>> GetAllLoansAsync()
         {
             var loans = loanRepository.SelectAllAsQueryable().ToList();
             if (loans == null || !loans.Any())
@@ -114,7 +134,41 @@ namespace LoanManagement.Service.Services.Loans
             return loanViewModels;
         }
 
-        public async Task RejectLoan(int loanId)
+        public async Task<decimal> MakeRepaymentAsync(int loanId, decimal amount, DateTime paymentDate)
+        {
+            var loan = await loanRepository.SelectAsync(loanId);
+            if (loan == null) throw new Exception("Loan not found");
+
+            decimal finalAmount = amount;
+            if (paymentDate < loan.EndDate)
+            {
+                finalAmount = amount * 0.95m;
+            }
+
+            var repayment = new Repayment
+            {
+                LoanId = loanId,
+                RemainingBalance = finalAmount,
+                PaymentDate = paymentDate
+            };
+
+            await repaymentRepository.InsertAsync(repayment);
+
+            var transaction = new Transaction
+            {
+                LoanId = loanId,
+                Amount = finalAmount,
+                TransactionDate = DateTime.UtcNow,
+                Description = paymentDate < loan.EndDate
+                    ? "Early Repayment with Discount"
+                    : "Repayment"
+            };
+            await transactionRepository.InsertAsync(transaction);
+
+            return finalAmount;
+        }
+
+        public async Task RejectLoanAsync(int loanId)
         {
             var loan = await loanRepository.SelectAsync(loanId);
             if (loan == null)

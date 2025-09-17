@@ -11,10 +11,10 @@ namespace LoanManagement.Service.Services.Customers
 {
     public interface ICustomerService
     {
-        Task AddCustomer(CustomerCreateModel customerCreate);
-        Task<List<Customer>> GetAllCustomers();
-        Task<CustomerViewModel> GetCustomerById(int id);
-        Task UpdateCustomer(CustomerUpdateModel customerUpdateModel, int id);
-        Task DeleteCustomer(int id);
+        Task AddCustomerAsync(CustomerCreateModel customerCreate);
+        Task<List<Customer>> GetAllCustomersAsync();
+        Task<Customer> GetCustomerByIdAsync(int id);
+        Task UpdateCustomerAsync(CustomerUpdateModel customerUpdateModel, int id);
+        Task DeleteCustomerAsync(int id);
     }
 }

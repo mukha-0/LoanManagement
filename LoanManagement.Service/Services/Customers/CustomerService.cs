@@ -18,7 +18,7 @@ namespace LoanManagement.Service.Services.Customers
         {
             customerRepository = new Repository<Customer>();
         }
-        public async Task AddCustomer(CustomerCreateModel customerCreate)
+        public async Task AddCustomerAsync(CustomerCreateModel customerCreate)
         {
             var customer = new Customer
             {
@@ -35,7 +35,7 @@ namespace LoanManagement.Service.Services.Customers
             await customerRepository.InsertAsync(customer);
         }
 
-        public async Task DeleteCustomer(int id)
+        public async Task DeleteCustomerAsync(int id)
         {
             var customer = await customerRepository.SelectAsync(id)
                ?? throw new NotFoundException("User is not found");
@@ -43,7 +43,7 @@ namespace LoanManagement.Service.Services.Customers
             await customerRepository.DeleteAsync(customer);
         }
 
-        public async Task<List<Customer>> GetAllCustomers()
+        public async Task<List<Customer>> GetAllCustomersAsync()
         {
             var customers = customerRepository.SelectAllAsQueryable().ToList();
 
@@ -55,23 +55,14 @@ namespace LoanManagement.Service.Services.Customers
             return await Task.FromResult(customers);
         }
 
-        public async Task<CustomerViewModel> GetCustomerById(int id)
+        public async Task<Customer> GetCustomerByIdAsync(int id)
         {
             var customer = await customerRepository.SelectAsync(id)
                 ?? throw new NotFoundException("Customer not found");
-            return new CustomerViewModel
-            {
-                FirstName = customer.FirstName,
-                LastName = customer.LastName,
-                Email = customer.Email,
-                PhoneNumber = customer.PhoneNumber,
-                Address = customer.Address,
-                DateOfBirth = customer.DateOfBirth,
-                AnnualIncome = customer.AnnualIncome
-            };
+            return customer;
         }
 
-        public async Task UpdateCustomer(CustomerUpdateModel customerUpdateModel, int customerId)
+        public async Task UpdateCustomerAsync(CustomerUpdateModel customerUpdateModel, int customerId)
         {
             var customer = await customerRepository.SelectAsync(customerId)
                 ?? throw new NotFoundException("Customer not found");

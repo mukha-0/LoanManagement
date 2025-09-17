@@ -12,6 +12,7 @@ namespace LoanManagement.Domain.Entities
         public int UserId { get; set; }
         public int LoanId { get; set; }
         public decimal Amount { get; set; }
+        public string Description { get; set; } = null!;
         public DateTime TransactionDate { get; set; } = DateTime.UtcNow;
 
 

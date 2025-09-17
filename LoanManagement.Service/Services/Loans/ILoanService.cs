@@ -10,16 +10,17 @@ namespace LoanManagement.Service.Services.Loans
 {
     public interface ILoanService
     {
-        Task ApplyForLoan(LoanCreateModel loanCreate);
+        Task ApproveLoanAsync(int loanId, int approvedByUserId);
 
-        Task ApproveLoan(int loanId, int approvedByUserId);
+        Task RejectLoanAsync(int loanId);
 
-        Task RejectLoan(int loanId);
+        Task<List<LoanViewModel>> GetActiveLoansByCustomerAsync(int customerId);
 
-        Task<List<LoanViewModel>> GetActiveLoansByCustomer(int customerId);
+        Task CalculateInterestAsync(int loanId);
 
-        Task CalculateInterest(int loanId);
+        Task<List<LoanViewModel>> GetAllLoansAsync();
 
-        Task<List<LoanViewModel>> GetAllLoans();
+        Task<Loan> ApplyForLoanAsync(LoanCreateModel loanCreateModel);
+        Task<decimal> MakeRepaymentAsync(int loanId, decimal amount, DateTime paymentDate);
     }
 }
