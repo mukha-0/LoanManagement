@@ -14,5 +14,6 @@ namespace LoanManagement.Service.Services.AllEntries.Admin
         Task DeleteUserAsync(int id);
         Task DeleteOfficerAsync(int id);
         Task AddNewAdmin(Adminn admin);
+        Task GiveDiscountToTopBorrower(int topN);
     }
 }

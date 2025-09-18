@@ -23,6 +23,7 @@ namespace LoanManagement.Service.Services.Loans
         {
             if (loanCreateModel.Amount <= 0) throw new ArgumentException("Loan amount must be greater than 0");
             if (loanCreateModel.TermInMonths <= 0) throw new ArgumentException("Term must be valid");
+            if (loanCreateModel.InterestRate <= 0) throw new ArgumentException("Interest rate must be greater than 0");
 
 
             var loan = new Loan
@@ -54,12 +55,16 @@ namespace LoanManagement.Service.Services.Loans
                 throw new Exception("Only pending loans can be approved");
             }
 
+            var interestrate = await CalculateInterestAsync(loanId);
+            loan.InterestRate = interestrate;
+            await loanRepository.UpdateAsync(loan);
+
             loan.Status = Domain.Enums.LoanStatus.Approved;
             loan.EndDate = loan.StartDate.AddMonths(loan.DurationMonths);
             await loanRepository.UpdateAsync(loan);
         }
 
-        public async Task CalculateInterestAsync(int loanId)
+        public async Task<decimal> CalculateInterestAsync(int loanId)
         {
             var loan = await loanRepository.SelectAsync(loanId);
             if (loan == null)
@@ -76,6 +81,7 @@ namespace LoanManagement.Service.Services.Loans
                 throw new Exception("No interest accrued yet");
             }
             var interest = loan.Amount * (loan.InterestRate / 100) * monthsElapsed;
+            return interest;
         }
 
         public async Task<List<LoanViewModel>> GetActiveLoansByUserAsync(int customerId)

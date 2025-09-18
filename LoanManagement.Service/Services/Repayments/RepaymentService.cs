@@ -56,6 +56,11 @@ namespace LoanManagement.Service.Services.Repayments
 
         public async Task<RepaymentViewModel> GetRepaymentSchedule(int loanId)
         {
+            if (loanId <= 0)
+            {
+                throw new ArgumentException("Invalid loan ID.");
+            }
+
             var repayments = repaymentRepository
                 .SelectAllAsQueryable()
                 .Where(r => r.LoanId == loanId)
@@ -95,6 +100,45 @@ namespace LoanManagement.Service.Services.Repayments
             if (repaymentCreateModel.PaymentDate.Month - loan.Result.EndDate.Month < loan.Result.DurationMonths)
             {
                 repaymentCreateModel.Amount *= 1.05m;
+            }
+            if (repaymentCreateModel.Amount > leftbalance)
+            {
+                throw new InvalidOperationException("Repayment amount exceeds outstanding balance.");
+            }
+            if (leftbalance - repaymentCreateModel.Amount == 0)
+            {
+                loan.Result.Status = Domain.Enums.LoanStatus.Closed;
+                await loanRepository.UpdateAsync(loan.Result);
+            }
+            if(repaymentCreateModel.PaymentDate >= loan.Result.EndDate.AddDays(5))
+            {
+                loan.Result.Status = Domain.Enums.LoanStatus.Overdue;
+                loan.Result.Amount += leftbalance * 0.05m;
+                await loanRepository.UpdateAsync(loan.Result);
+
+                throw new InvalidOperationException("Loan is overdue. A late 5% fee has been applied to the repayment amount.");
+            }
+            else if(repaymentCreateModel.PaymentDate >= loan.Result.EndDate.AddDays(10))
+            {
+                loan.Result.Status = Domain.Enums.LoanStatus.Overdue;
+                loan.Result.Amount += leftbalance * 0.10m;
+                await loanRepository.UpdateAsync(loan.Result);
+                throw new InvalidOperationException("Loan is overdue. A late 10% fee has been applied to the repayment amount.");
+            }
+            else if (repaymentCreateModel.PaymentDate >= loan.Result.EndDate.AddDays(15))
+            {
+                loan.Result.Status = Domain.Enums.LoanStatus.Overdue;
+                loan.Result.Amount += leftbalance * 0.15m;
+                await loanRepository.UpdateAsync(loan.Result);
+                throw new InvalidOperationException("Loan is overdue. A late 15% fee has been applied to the repayment amount.");
+            }
+            else if(repaymentCreateModel.PaymentDate >= loan.Result.EndDate.AddDays(20))
+            {
+                loan.Result.Status = Domain.Enums.LoanStatus.Suspended;
+                await loanRepository.UpdateAsync(loan.Result);
+                throw new InvalidOperationException("Your loan repayment has been suspended, " +
+                    "we need you to come to the bank to make a repayment or else we would " +
+                    "have to sue you to the court!!!");
             }
             var repayment = new Repayment
             {

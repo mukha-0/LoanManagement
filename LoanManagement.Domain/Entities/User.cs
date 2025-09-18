@@ -21,5 +21,6 @@ namespace LoanManagement.Domain.Entities
 
 
         public ICollection<Repayment> Repayments { get; set; } = new List<Repayment>();
+        public ICollection<Loan> Loans { get; set; } = new List<Loan>();
     }
 }

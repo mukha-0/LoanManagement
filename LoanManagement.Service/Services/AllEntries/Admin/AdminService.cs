@@ -9,7 +9,7 @@ using LoanManagement.Service.Services.AllEntries.Admin;
 
 namespace LoanManagement.Service.Services.AllEntries
 {
-    public class AdminService: IAdminModel
+    public class AdminService : IAdminModel
     {
         private readonly IRepository<Adminn> adminRepository;
         private readonly IRepository<User> userRepository;
@@ -64,6 +64,23 @@ namespace LoanManagement.Service.Services.AllEntries
                 throw new Exception("Admin with the same ID already exists.");
             }
             await adminRepository.InsertAsync(admin);
+        }
+
+        public async Task GiveDiscountToTopBorrower(int topN)
+        {
+            var topBorrowers = userRepository
+                .SelectAllAsQueryable()
+                .OrderByDescending(u => u.Loans.Count)
+                .Take(topN)
+                .ToList();
+            foreach (var borrower in topBorrowers)
+            {
+                foreach (var loan in borrower.Loans)
+                {
+                    loan.Amount -= loan.Amount * 0.15m;
+                    await userRepository.UpdateAsync(borrower);
+                }
+            }
         }
     }
 }

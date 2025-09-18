@@ -16,5 +16,8 @@ namespace LoanManagement.Service.Services.Reports
         Task<object> GetLoansByStatusAsync(LoanStatus status);
         Task<object> GetByUserIdAsync(int userId);
         Task<List<ReportsViewModel>> GetAllAsync();
+        Task<decimal> GetTotalOutstandingLoansAsync();
+        Task<decimal> GetTotalApprovedLoansAsync();
+        Task<decimal> GetTotalRejectedLoansAsync();
     }
 }

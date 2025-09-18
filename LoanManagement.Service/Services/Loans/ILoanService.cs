@@ -16,7 +16,7 @@ namespace LoanManagement.Service.Services.Loans
 
         Task<List<LoanViewModel>> GetActiveLoansByUserAsync(int customerId);
 
-        Task CalculateInterestAsync(int loanId);
+        Task<decimal> CalculateInterestAsync(int loanId);
 
         Task<List<LoanViewModel>> GetAllLoansAsync();
 

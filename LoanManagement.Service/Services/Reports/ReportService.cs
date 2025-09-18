@@ -49,6 +49,30 @@ namespace LoanManagement.Service.Services.Reports
             return loans;
         }
 
+        public async Task<decimal> GetTotalApprovedLoansAsync()
+        {
+            var totalApproved = loanRepository.SelectAllAsQueryable()
+                .Where(l => l.Status == Domain.Enums.LoanStatus.Approved)
+                .Sum(l => l.Amount);
+            return totalApproved;
+        }
+
+        public async Task<decimal> GetTotalOutstandingLoansAsync()
+        {
+            var totalOutstanding = loanRepository.SelectAllAsQueryable()
+                .Where(l => l.Status == Domain.Enums.LoanStatus.Approved || l.Status == Domain.Enums.LoanStatus.Pending)
+                .Sum(l => l.Amount);
+            return totalOutstanding;
+        }
+
+        public async Task<decimal> GetTotalRejectedLoansAsync()
+        {
+            var totalRejected = loanRepository.SelectAllAsQueryable()
+                .Where(l => l.Status == Domain.Enums.LoanStatus.Rejected)
+                .Sum(l => l.Amount);
+            return totalRejected;
+        }
+
         public async Task GetTotalRepaidAmountAsync()
         {
             var totalRepaid = loanRepository.SelectAllAsQueryable()
