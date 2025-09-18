@@ -13,9 +13,11 @@ namespace LoanManagement.Service.Services.Repayments
     internal class RepaymentService : IRepaymentService
     {
         private readonly IRepository<Repayment> repaymentRepository;
+        private readonly IRepository<Loan> loanRepository;
         public RepaymentService()
         {
             repaymentRepository = new Repository<Repayment>();
+            loanRepository = new Repository<Loan>();
         }
         public async Task<decimal> CheckOutstandingBalance(int loanId)
         {
@@ -74,11 +76,26 @@ namespace LoanManagement.Service.Services.Repayments
 
         public async Task MakeRepayment(RepaymentCreateModel repaymentCreateModel)
         {
+            var loan = loanRepository.SelectAsync(repaymentCreateModel.LoanId);
+            if (loan == null)
+            {
+                throw new NotFoundException("Loan not found");
+            }
+            if (loan.Result.Status != Domain.Enums.LoanStatus.Approved)
+            {
+                throw new InvalidOperationException("Cannot make a repayment on a loan that is not approved.");
+            }
             if (repaymentCreateModel.Amount <= 0)
             {
                 throw new ArgumentException("Repayment amount must be greater than zero.");
             }
+
             var leftbalance = await CheckOutstandingBalance(repaymentCreateModel.LoanId);
+
+            if (repaymentCreateModel.PaymentDate.Month - loan.Result.EndDate.Month < loan.Result.DurationMonths)
+            {
+                repaymentCreateModel.Amount *= 1.05m;
+            }
             var repayment = new Repayment
             {
                 LoanId = repaymentCreateModel.LoanId,
