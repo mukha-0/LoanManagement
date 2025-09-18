@@ -15,6 +15,5 @@ namespace LoanManagement.DataAccess.Repositories
         Task<TEntity> SelectAsync(int id);
         IQueryable<TEntity> SelectAllAsQueryable();
         Task<TEntity> SelectAsync(string status);
-        Task InsertAsync(Customer customer);
     }
 }

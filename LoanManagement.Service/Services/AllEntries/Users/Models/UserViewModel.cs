@@ -4,14 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LoanManagement.Service.Services.Users.Models
+namespace LoanManagement.Service.Services.AllEntries.Users.Models
 {
-    public class UserUpdateModel
+    public class UserViewModel
     {
+        public string Username { get; set; }
         public string FirstName { get; set; }
-        public string NewPassword { get; set; }
         public string LastName { get; set; }
-        public string Email { get; set; }
         public string PhoneNumber { get; set; }
+        public string Email { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }

@@ -14,13 +14,12 @@ namespace LoanManagement.Service.Services.Loans
 
         Task RejectLoanAsync(int loanId);
 
-        Task<List<LoanViewModel>> GetActiveLoansByCustomerAsync(int customerId);
+        Task<List<LoanViewModel>> GetActiveLoansByUserAsync(int customerId);
 
         Task CalculateInterestAsync(int loanId);
 
         Task<List<LoanViewModel>> GetAllLoansAsync();
 
         Task<Loan> ApplyForLoanAsync(LoanCreateModel loanCreateModel);
-        Task<decimal> MakeRepaymentAsync(int loanId, decimal amount, DateTime paymentDate);
     }
 }

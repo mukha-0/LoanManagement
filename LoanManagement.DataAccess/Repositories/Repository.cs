@@ -47,18 +47,12 @@ namespace LoanManagement.DataAccess.Repositories
             return context.Set<TEntity>().AsQueryable();
         }
 
-        // Fix for CS0535: Implementing SelectAsync(string)
+
         public async Task<TEntity?> SelectAsync(string status)
         {
-            // Assuming TEntity has a property named "Status" for filtering.
+
             return await context.Set<TEntity>().FirstOrDefaultAsync(e => EF.Property<string>(e, "Status") == status);
         }
 
-        // Fix for CS0535: Implementing InsertAsync(Customer)
-        public async Task InsertAsync(Customer customer)
-        {
-            await context.AddAsync(customer);
-            await context.SaveChangesAsync();
-        }
     }
 }

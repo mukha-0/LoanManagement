@@ -19,8 +19,6 @@ namespace LoanManagement.Domain.Entities
         public LoanStatus Status { get; set; } = LoanStatus.Pending;
 
 
-        public Customer Customer { get; set; } = null!;
         public ICollection<Repayment> Repayments { get; set; } = new List<Repayment>();
-        public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
     }
 }

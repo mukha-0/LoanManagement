@@ -14,7 +14,6 @@ namespace LoanManagement.Domain.Entities
         public DateTime PaymentDate { get; set; } = DateTime.UtcNow;
         public decimal AmountPaid { get; set; }
         public decimal RemainingBalance { get; set; }
-        public RepaymentStatus Status { get; set; } = RepaymentStatus.Pending;
 
 
         public Loan Loan { get; set; } = null!;

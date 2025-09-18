@@ -1,10 +1,10 @@
-﻿namespace LoanManagement
+﻿
+
+namespace LoanManagement;
+
+internal class Program
 {
-    internal class Program
+    static async Task Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            Console.WriteLine();
-        }
     }
 }

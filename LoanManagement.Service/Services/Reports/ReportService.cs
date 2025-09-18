@@ -5,12 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using LoanManagement.DataAccess.Repositories;
 using LoanManagement.Domain.Entities;
+using LoanManagement.Domain.Enums;
 using LoanManagement.Service.Exceptions;
 using LoanManagement.Service.Services.Reports.Models;
 
 namespace LoanManagement.Service.Services.Reports
 {
-    internal class ReportService : IReportService
+    public class ReportService : IReportService
     {
         private readonly IRepository<ReportService> reportServiceRepository;
         private readonly IRepository<Loan> loanRepository;
@@ -24,18 +25,19 @@ namespace LoanManagement.Service.Services.Reports
             return (Task<List<ReportsViewModel>>)reportServiceRepository.SelectAllAsQueryable();
         }
 
-        public async Task<object> GetByUserAsync(int userId, ReportsViewModel userr)
+        public async Task<object> GetByUserIdAsync(int userId)
         {
             var user = await reportServiceRepository.SelectAsync(userId)
                 ?? throw new NotFoundException("User is not found");
             return user;
         }
 
-        public async Task<object> GetLoansByStatusAsync(string status)
+        public async Task<object> GetLoansByStatusAsync(LoanStatus status)
         {
-            var loan = await loanRepository.SelectAsync(status)
-                ?? throw new NotFoundException("No loans found with the specified status");
-            return loan;
+            var loans = loanRepository.SelectAllAsQueryable()
+                .Where(l => l.Status == status)
+                .ToList();
+            return loans;
         }
 
         public async Task<object> GetTopBorrowersAsync(int topN)

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LoanManagement.Service.Services.Users.Models
+namespace LoanManagement.Service.Services.AllEntries.Users.Models
 {
     public class UserLoginModel
     {

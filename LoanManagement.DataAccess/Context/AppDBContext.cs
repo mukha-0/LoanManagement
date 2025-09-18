@@ -14,14 +14,13 @@ namespace LoanManagement.DataAccess.Context
         {
             optionsBuilder
                 .UseSqlServer(
-                "Server=ROOT;Database=LoanManagement;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
+                "Server=ROOT;Database=LoanManagement2;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
                 );
         }
-        public DbSet<Customer> Customers { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Loan> Loans { get; set; }
         public DbSet<Repayment> Repayments { get; set; }
-        public DbSet<Transaction> Transactions { get; set; }
-
+        public DbSet<LoanOfficerr> LoanOfficers { get; set; }
+        public DbSet<Adminn> Admins { get; set; }
     }
 }

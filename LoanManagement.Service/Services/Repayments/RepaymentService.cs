@@ -27,11 +27,16 @@ namespace LoanManagement.Service.Services.Repayments
             return repayments.RemainingBalance;
         }
 
-        public async Task<RepaymentViewModel> GetRepaymentsByCustomer(int customerId)
+        public async Task<IEnumerable<Repayment>> GetAllRepayments()
+        {
+            return repaymentRepository.SelectAllAsQueryable().ToList();
+        }
+
+        public async Task<RepaymentViewModel> GetRepaymentsByUserId(int userId)
         {
             var repayments = repaymentRepository
                 .SelectAllAsQueryable()
-                .Where(r => r.Loan.CustomerId == customerId)
+                .Where(r => r.Loan.CustomerId == userId)
                 .ToList();
             if (repayments == null || !repayments.Any())
             {
@@ -39,7 +44,7 @@ namespace LoanManagement.Service.Services.Repayments
             }
             var repaymentViewModel = new RepaymentViewModel
             {
-                Id = customerId,
+                Id = userId,
                 LoanId = repayments.First().LoanId,
                 Amount = repayments.Sum(r => r.AmountPaid),
                 Date = repayments.Max(r => r.PaymentDate)
@@ -69,11 +74,17 @@ namespace LoanManagement.Service.Services.Repayments
 
         public async Task MakeRepayment(RepaymentCreateModel repaymentCreateModel)
         {
+            if (repaymentCreateModel.Amount <= 0)
+            {
+                throw new ArgumentException("Repayment amount must be greater than zero.");
+            }
+            var leftbalance = await CheckOutstandingBalance(repaymentCreateModel.LoanId);
             var repayment = new Repayment
             {
                 LoanId = repaymentCreateModel.LoanId,
+                AmountPaid = repaymentCreateModel.Amount,
                 PaymentDate = DateTime.UtcNow,
-                AmountPaid = repaymentCreateModel.Amount
+                RemainingBalance = leftbalance - repaymentCreateModel.Amount
             };
             await repaymentRepository.InsertAsync(repayment);
         }

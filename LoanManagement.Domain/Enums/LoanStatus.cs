@@ -11,7 +11,6 @@ namespace LoanManagement.Domain.Enums
         Pending,
         Approved,
         Rejected,
-        Active,
         Closed
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LoanManagement.Domain.Enums;
 using LoanManagement.Service.Services.Reports.Models;
 
 namespace LoanManagement.Service.Services.Reports
@@ -12,8 +13,8 @@ namespace LoanManagement.Service.Services.Reports
         Task GetTotalUnconfirmedLoansAsync();
         Task GetTotalRepaidAmountAsync();
         Task<object> GetTopBorrowersAsync(int topN);
-        Task<object> GetLoansByStatusAsync(string status);
-        Task<object> GetByUserAsync(int userId, ReportsViewModel reportsView);
+        Task<object> GetLoansByStatusAsync(LoanStatus status);
+        Task<object> GetByUserIdAsync(int userId);
         Task<List<ReportsViewModel>> GetAllAsync();
     }
 }

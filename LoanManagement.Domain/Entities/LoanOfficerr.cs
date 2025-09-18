@@ -3,23 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LoanManagement.Domain.Entities;
 using LoanManagement.Domain.Enums;
 
-namespace LoanManagement.Domain.Entities
+namespace LoanManagement
 {
-    public class User
+    public class LoanOfficerr
     {
-        public int UserId { get; set; }
-        public string UserName { get; set; }
+        public int OfficerId { get; set; }
         public string FirstName { get; set; } = null!;
-        public string LastName { get; set; } = null!;
+        public string LastName { get; set; }
         public string Email { get; set; } = null!;
         public string PhoneNumber { get; set; } = null!;
         public string Password { get; set; } = null!;
-        public Role Role { get; set; } = Role.User;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public Role Role { get; set; } = Role.LoanOfficer;
 
-
-        public ICollection<Repayment> Repayments { get; set; } = new List<Repayment>();
+        public ICollection<Loan> LoansApproved { get; set; } = new List<Loan>();
     }
 }

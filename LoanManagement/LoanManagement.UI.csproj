@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LoanManagement.DataAccess\LoanManagement.DataAccess.csproj" />
+    <ProjectReference Include="..\LoanManagement.Service\LoanManagement.Service.csproj" />
   </ItemGroup>
 
   <ItemGroup>

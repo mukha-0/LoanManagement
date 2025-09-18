@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LoanManagement.DataAccess.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    [Migration("20250914190759_First")]
-    partial class First
+    [Migration("20250918093105_AddNewProperties")]
+    partial class AddNewProperties
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -37,7 +37,13 @@ namespace LoanManagement.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("AnnualIncome")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
@@ -45,6 +51,10 @@ namespace LoanManagement.DataAccess.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IdentificationNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -78,7 +88,7 @@ namespace LoanManagement.DataAccess.Migrations
                     b.Property<int>("DurationMonths")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("EndDate")
+                    b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("InterestRate")
@@ -138,13 +148,17 @@ namespace LoanManagement.DataAccess.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("LoanId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("UserId")
+                    b.Property<int?>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("TransactionId");
@@ -166,6 +180,9 @@ namespace LoanManagement.DataAccess.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -189,6 +206,10 @@ namespace LoanManagement.DataAccess.Migrations
 
                     b.Property<int>("Role")
                         .HasColumnType("int");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("UserId");
 
@@ -225,15 +246,11 @@ namespace LoanManagement.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("LoanManagement.Domain.Entities.User", "User")
+                    b.HasOne("LoanManagement.Domain.Entities.User", null)
                         .WithMany("Transactions")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UserId");
 
                     b.Navigation("Loan");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("LoanManagement.Domain.Entities.Customer", b =>
