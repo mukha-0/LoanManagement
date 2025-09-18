@@ -51,6 +51,25 @@ namespace LoanManagement.Service.Services.AllEntries.LoanOfficer
             await loanRepository.UpdateAsync(loan);
         }
 
+        public async Task CreateNewLoanOfficer(OfficerCreateModel officerCreateModel)
+        {
+            var existingOfficer = await officerRepository.SelectAsync(officerCreateModel.OfficerId);
+            if (existingOfficer != null)
+            {
+                throw new Exception("Officer with the same ID already exists.");
+            }
+            var newOfficer = new LoanOfficerr
+            {
+                FirstName = officerCreateModel.FirstName,
+                LastName = officerCreateModel.LastName,
+                Email = officerCreateModel.Email,
+                PhoneNumber = officerCreateModel.PhoneNumber,
+                CreatedAt = DateTime.UtcNow,
+                Role = Domain.Enums.Role.LoanOfficer,
+            };
+            await officerRepository.InsertAsync(newOfficer);
+        }
+
         public async Task<IEnumerable<OfficerViewModel>> GetAllOfficers()
         {
             var officers = officerRepository.SelectAllAsQueryable();
@@ -59,8 +78,10 @@ namespace LoanManagement.Service.Services.AllEntries.LoanOfficer
                 Id = o.OfficerId,
                 Firstname = o.FirstName,
                 Lastname = o.LastName,
+                Password = o.Password,
                 Email = o.Email,
                 PhoneNumber = o.PhoneNumber,
+                
                 ApprovedLoansCount = o.LoansApproved.Count
             }).ToList();
         }

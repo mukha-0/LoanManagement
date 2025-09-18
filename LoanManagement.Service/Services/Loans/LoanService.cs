@@ -42,7 +42,7 @@ namespace LoanManagement.Service.Services.Loans
             return loan;
         }
 
-        public async Task ApproveLoanAsync(int loanId, int approvedByUserId)
+        public async Task ApproveLoanAsync(int loanId)
         {
             var loan = await loanRepository.SelectAsync(loanId);
             if (loan == null)
@@ -84,11 +84,15 @@ namespace LoanManagement.Service.Services.Loans
             return interest;
         }
 
-        public async Task<List<LoanViewModel>> GetActiveLoansByUserAsync(int customerId)
+        public async Task<List<LoanViewModel>> GetActiveLoansByUserAsync(string customerId)
         {
+            if (!int.TryParse(customerId, out int custId))
+            {
+                throw new ArgumentException("Invalid customer ID");
+            }
             var loans = loanRepository
                 .SelectAllAsQueryable()
-                .Where(l => l.CustomerId == customerId && l.Status == Domain.Enums.LoanStatus.Approved)
+                .Where(l => l.CustomerId == custId && l.Status == LoanStatus.Approved)
                 .ToList();
             if (loans == null || !loans.Any())
             {
@@ -129,6 +133,43 @@ namespace LoanManagement.Service.Services.Loans
             }).ToList();
 
             return loanViewModels;
+        }
+
+        public async Task<IQueryable<Loan>> GetLoanHistoryOfUserAsync(string id)
+        {
+            if (!int.TryParse(id, out int customerId))
+            {
+                throw new ArgumentException("Invalid user ID");
+            }
+            var loans = loanRepository
+                .SelectAllAsQueryable()
+                .Where(l => l.CustomerId == customerId)
+                .AsQueryable();
+            return loans;
+        }
+
+        public IEnumerable<object> GetLoansWaitingForOfficer()
+        {
+            var loans = loanRepository
+                .SelectAllAsQueryable()
+                .Where(l => l.Status == LoanStatus.Pending)
+                .ToList();
+            return loans.Select(l => new
+            {
+                LoanID = l.LoanId,
+                UserID = l.CustomerId,
+                Amount = l.Amount,
+                Status = l.Status.ToString()
+            }).ToList();
+        }
+
+        public async Task<List<Loan>> GetPendingLoans()
+        {
+            var loans = loanRepository
+                .SelectAllAsQueryable()
+                .Where(l => l.Status == LoanStatus.Pending)
+                .ToList();
+            return loans;
         }
 
         public async Task RejectLoanAsync(int loanId)

@@ -10,7 +10,7 @@ namespace LoanManagement.Service.Services.Repayments
 {
     public interface IRepaymentService
     {
-        Task MakeRepayment(RepaymentCreateModel repaymentCreate);
+        Task MakeRepaymentAsync(RepaymentCreateModel repaymentCreate);
 
         Task<RepaymentViewModel> GetRepaymentSchedule(int loanId);
 

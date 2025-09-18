@@ -8,6 +8,8 @@ using LoanManagement.Domain.Entities;
 using LoanManagement.Domain.Enums;
 using LoanManagement.Service.Exceptions;
 using LoanManagement.Service.Services.Reports.Models;
+using Microsoft.EntityFrameworkCore;
+using Telegram.Bot;
 
 namespace LoanManagement.Service.Services.Reports
 {
@@ -15,9 +17,11 @@ namespace LoanManagement.Service.Services.Reports
     {
         private readonly IRepository<ReportService> reportServiceRepository;
         private readonly IRepository<Loan> loanRepository;
+        private readonly IRepository<User> userRepository;
         public ReportService()
         {
             reportServiceRepository = new Repository<ReportService>();
+            userRepository = new Repository<User>();
         }
 
         public Task<List<ReportsViewModel>> GetAllAsync()
@@ -85,6 +89,30 @@ namespace LoanManagement.Service.Services.Reports
             var totalUnconfirmed = loanRepository.SelectAllAsQueryable()
                 .Where(l => l.Status == Domain.Enums.LoanStatus.Pending)
                 .Sum(l => l.Amount);
+        }
+        public async Task GenerateReport(TelegramBotClient telegramBotClient, long chatId, ReportsCreateModel reportsCreateModel)
+        {
+            var reportMessage = new StringBuilder();
+            reportMessage.AppendLine("Loan Management Report");
+            reportMessage.AppendLine("----------------------");
+            reportMessage.AppendLine($"Total Approved Loans: {await GetTotalApprovedLoansAsync()}");
+            reportMessage.AppendLine($"Total Outstanding Loans: {await GetTotalOutstandingLoansAsync()}");
+            reportMessage.AppendLine($"Total Rejected Loans: {await GetTotalRejectedLoansAsync()}");
+            reportMessage.AppendLine("----------------------");
+            reportMessage.AppendLine("Top Borrowers:");
+            var topBorrowers = await GetTopBorrowersAsync(5) as List<Loan>;
+            if (topBorrowers != null)
+            {
+                foreach (var borrower in topBorrowers)
+                {
+                    var user = await userRepository.SelectAsync(borrower.CustomerId);
+                    if (user != null)
+                    {
+                        reportMessage.AppendLine($"User ID: {user.UserId}, Name: {user.FirstName} {user.LastName}, Amount: {borrower.Amount}");
+                    }
+                }
+            }
+            await telegramBotClient.SendTextMessageAsync(chatId, reportMessage.ToString());
         }
     }
 }

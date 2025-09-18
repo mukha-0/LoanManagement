@@ -18,5 +18,6 @@ namespace LoanManagement.Service.Services.AllEntries.LoanOfficer
         Task<IEnumerable<OfficerViewModel>> GetAllOfficers();
         Task ApplyForLoanOfficer(OfficerCreateModel officerCreateModel);
         Task UpdateLoanOfficer(int officerId, OfficerUpdateModel officerUpdateModel);
+        Task CreateNewLoanOfficer(OfficerCreateModel officerCreateModel);
     }
 }

@@ -10,6 +10,7 @@ namespace LoanManagement.Service.Services.Reports.Models
     public class ReportsCreateModel
     {
         public int Id { get; set; }
+        public int UserId { get; set; }
         public User User { get; set; }
         public IEnumerable<Loan> Loans { get; set; }
         public IEnumerable<Repayment> Payments { get; set; }
@@ -21,5 +22,7 @@ namespace LoanManagement.Service.Services.Reports.Models
         public double AverageLoanAmount { get; set; }
         public double AveragePaymentAmount { get; set; }
         public DateTime ReportGeneratedOn { get; set; }
+        public IEnumerable<Loan> TopBorrowers { get; set; }
+        public decimal TotalApprovedLoans { get; set; }
     }
 }

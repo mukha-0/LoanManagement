@@ -10,7 +10,7 @@ using LoanManagement.Service.Services.Repayments.Models;
 
 namespace LoanManagement.Service.Services.Repayments
 {
-    internal class RepaymentService : IRepaymentService
+    public class RepaymentService : IRepaymentService
     {
         private readonly IRepository<Repayment> repaymentRepository;
         private readonly IRepository<Loan> loanRepository;
@@ -79,7 +79,7 @@ namespace LoanManagement.Service.Services.Repayments
             return repaymentViewModel;
         }
 
-        public async Task MakeRepayment(RepaymentCreateModel repaymentCreateModel)
+        public async Task MakeRepaymentAsync(RepaymentCreateModel repaymentCreateModel)
         {
             var loan = loanRepository.SelectAsync(repaymentCreateModel.LoanId);
             if (loan == null)

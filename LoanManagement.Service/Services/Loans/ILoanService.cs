@@ -10,16 +10,18 @@ namespace LoanManagement.Service.Services.Loans
 {
     public interface ILoanService
     {
-        Task ApproveLoanAsync(int loanId, int approvedByUserId);
+        Task ApproveLoanAsync(int loanId);
 
         Task RejectLoanAsync(int loanId);
 
-        Task<List<LoanViewModel>> GetActiveLoansByUserAsync(int customerId);
+        Task<List<LoanViewModel>> GetActiveLoansByUserAsync(string customerId);
 
         Task<decimal> CalculateInterestAsync(int loanId);
 
         Task<List<LoanViewModel>> GetAllLoansAsync();
-
+        IEnumerable<object> GetLoansWaitingForOfficer();
         Task<Loan> ApplyForLoanAsync(LoanCreateModel loanCreateModel);
+        Task<List<Loan>> GetPendingLoans();
+        Task<IQueryable<Loan>> GetLoanHistoryOfUserAsync(string userId);
     }
 }
