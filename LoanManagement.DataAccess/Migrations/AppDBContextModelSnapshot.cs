@@ -22,50 +22,24 @@ namespace LoanManagement.DataAccess.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("LoanManagement.Domain.Entities.Customer", b =>
+            modelBuilder.Entity("LoanManagement.Domain.Entities.Adminn", b =>
                 {
-                    b.Property<int>("CustomerId")
-                        .ValueGeneratedOnAdd()
+                    b.Property<string>("AdminId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AdminPassword")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AdminUserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Role")
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CustomerId"));
-
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("AnnualIncome")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("DateOfBirth")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("IdentificationNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("CustomerId");
-
-                    b.ToTable("Customers");
+                    b.ToTable("Admins");
                 });
 
             modelBuilder.Entity("LoanManagement.Domain.Entities.Loan", b =>
@@ -99,8 +73,6 @@ namespace LoanManagement.DataAccess.Migrations
 
                     b.HasKey("LoanId");
 
-                    b.HasIndex("CustomerId");
-
                     b.ToTable("Loans");
                 });
 
@@ -124,47 +96,16 @@ namespace LoanManagement.DataAccess.Migrations
                     b.Property<decimal>("RemainingBalance")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("Status")
+                    b.Property<int?>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("RepaymentId");
 
                     b.HasIndex("LoanId");
 
-                    b.ToTable("Repayments");
-                });
-
-            modelBuilder.Entity("LoanManagement.Domain.Entities.Transaction", b =>
-                {
-                    b.Property<int>("TransactionId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TransactionId"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("LoanId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("TransactionDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("TransactionId");
-
-                    b.HasIndex("LoanId");
-
                     b.HasIndex("UserId");
 
-                    b.ToTable("Transactions");
+                    b.ToTable("Repayments");
                 });
 
             modelBuilder.Entity("LoanManagement.Domain.Entities.User", b =>
@@ -178,9 +119,6 @@ namespace LoanManagement.DataAccess.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -193,7 +131,7 @@ namespace LoanManagement.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PasswordHash")
+                    b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -213,15 +151,38 @@ namespace LoanManagement.DataAccess.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("LoanManagement.Domain.Entities.Loan", b =>
+            modelBuilder.Entity("LoanManagement.LoanOfficerr", b =>
                 {
-                    b.HasOne("LoanManagement.Domain.Entities.Customer", "Customer")
-                        .WithMany("Loans")
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
-                    b.Navigation("Customer");
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("OfficerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
+                    b.ToTable("LoanOfficers");
                 });
 
             modelBuilder.Entity("LoanManagement.Domain.Entities.Repayment", b =>
@@ -232,39 +193,21 @@ namespace LoanManagement.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Loan");
-                });
-
-            modelBuilder.Entity("LoanManagement.Domain.Entities.Transaction", b =>
-                {
-                    b.HasOne("LoanManagement.Domain.Entities.Loan", "Loan")
-                        .WithMany("Transactions")
-                        .HasForeignKey("LoanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("LoanManagement.Domain.Entities.User", null)
-                        .WithMany("Transactions")
+                        .WithMany("Repayments")
                         .HasForeignKey("UserId");
 
                     b.Navigation("Loan");
                 });
 
-            modelBuilder.Entity("LoanManagement.Domain.Entities.Customer", b =>
-                {
-                    b.Navigation("Loans");
-                });
-
             modelBuilder.Entity("LoanManagement.Domain.Entities.Loan", b =>
                 {
                     b.Navigation("Repayments");
-
-                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("LoanManagement.Domain.Entities.User", b =>
                 {
-                    b.Navigation("Transactions");
+                    b.Navigation("Repayments");
                 });
 #pragma warning restore 612, 618
         }
