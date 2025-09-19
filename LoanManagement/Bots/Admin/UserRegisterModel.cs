@@ -4,7 +4,7 @@
 
 
 
-namespace LoanManagement.Bots.AdminBot
+namespace LoanManagement
 {
     public class UserRegisterModel
     {

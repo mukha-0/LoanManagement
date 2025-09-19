@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LoanManagement.Bots.AdminBot;
 using LoanManagement.DataAccess.Repositories;
 using LoanManagement.Domain.Entities;
 using LoanManagement.Service.Exceptions;
@@ -14,10 +15,18 @@ namespace LoanManagement.Service.Services.AllEntries.Users
     public class UserService : IUserService
     {
         private readonly IRepository<User> userRepositoy;
+        private IUserService userService;
+
         public UserService(DataAccess.Context.AppDBContext db)
         {
             userRepositoy = new Repository<User>();
         }
+
+        public UserService(IUserService userService)
+        {
+            this.userService = userService;
+        }
+
         public async Task ChangePasswordAsync(UserUpdateModel updateUser, int id)
         {
             var user = userRepositoy.SelectAsync(id)
@@ -48,28 +57,26 @@ namespace LoanManagement.Service.Services.AllEntries.Users
                 throw new UnauthorizedAccessException("Invalid username or password");
             return user;
         }
-        public async Task RegisterUserAsync(UserRegisterModel user)
+        public async Task RegisterUserAsync(UserRegisterModel userModel)
         {
-            if (string.IsNullOrWhiteSpace(user.UserName))
-                throw new ArgumentException("Username is required");
-            if (string.IsNullOrWhiteSpace(user.PasswordHash))
-                throw new ArgumentException("Password is required");
-            var existingUser = userRepositoy
+            var existingUser = await userRepositoy
                 .SelectAllAsQueryable()
-                .FirstOrDefault(u => u.UserName == user.UserName);
+                .FirstOrDefaultAsync(u => u.UserName == userModel.Username);
             if (existingUser != null)
-                throw new Exception("Username already exists");
-
-            _ = await userRepositoy.InsertAsync(new User
             {
-                UserName = user.UserName,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Password = user.PasswordHash,
+                throw new Exception("Username already exists");
+            }
+            var newUser = new User
+            {
+                FirstName = userModel.FullName,
+                Email = userModel.Email,
+                PhoneNumber = userModel.PhoneNumber,
+                UserName = userModel.Username,
+                Password = userModel.Password,
                 CreatedAt = DateTime.UtcNow,
-                Email = user.Email,
-                Role = user.Role,
-            });
+                Role = Domain.Enums.Role.User,
+            };
+            await userRepositoy.InsertAsync(newUser);
         }
     }
 }

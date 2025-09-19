@@ -14,9 +14,16 @@ namespace LoanManagement.Service.Services.Loans
     {
         private readonly IRepository<Loan> loanRepository;
         private readonly IRepository<Repayment> repaymentRepository = new Repository<Repayment>();
+        private ILoanService loanService;
+
         public LoanService(DataAccess.Context.AppDBContext db)
         {
             loanRepository = new Repository<Loan>();
+        }
+
+        public LoanService(ILoanService loanService)
+        {
+            this.loanService = loanService;
         }
 
         public async Task<Loan> ApplyForLoanAsync(LoanCreateModel loanCreateModel)
@@ -107,7 +114,15 @@ namespace LoanManagement.Service.Services.Loans
                 TermInMonths = l.DurationMonths,
                 StartDate = l.StartDate,
                 EndDate = l.EndDate,
-                Status = l.Status.ToString()
+                Status = l.Status.ToString(),
+                OutstandingBalance = l.Status == LoanStatus.Approved ?
+                (l.Amount + (l.Amount * (l.InterestRate / 100) 
+                * (((DateTime.UtcNow.Year - l.StartDate.Year) * 12) 
+                + DateTime.UtcNow.Month - l.StartDate.Month))) 
+                - repaymentRepository
+                .SelectAllAsQueryable()
+                .Where(r => r.LoanId == l.LoanId)
+                .Sum(r => r.AmountPaid) : 0
             }).ToList();
 
             return loanViewModels;

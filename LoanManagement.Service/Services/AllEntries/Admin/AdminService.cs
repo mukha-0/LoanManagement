@@ -14,11 +14,18 @@ namespace LoanManagement.Service.Services.AllEntries
         private readonly IRepository<Adminn> adminRepository;
         private readonly IRepository<User> userRepository;
         private readonly IRepository<LoanOfficerr> officerRepository;
+        private IAdminService adminService;
+
         public AdminService(DataAccess.Context.AppDBContext db)
         {
             adminRepository = new Repository<Adminn>();
             userRepository = new Repository<User>();
             officerRepository = new Repository<LoanOfficerr>();
+        }
+
+        public AdminService(IAdminService adminService)
+        {
+            this.adminService = adminService;
         }
 
         public async Task DeleteOfficerAsync(int id)

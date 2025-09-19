@@ -11,6 +11,7 @@ namespace LoanManagement.Domain.Entities
     {
         public int UserId { get; set; }
         public string UserName { get; set; }
+        public string FullName { get; set; }
         public string FirstName { get; set; } = null!;
         public string LastName { get; set; } = null!;
         public string Email { get; set; } = null!;

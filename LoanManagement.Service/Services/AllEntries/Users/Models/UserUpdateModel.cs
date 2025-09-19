@@ -9,6 +9,7 @@ namespace LoanManagement.Service.Services.AllEntries.Users.Models
     public class UserUpdateModel
     {
         public string Username { get; set; }
+        public string FullName { get; set; }
         public string Firstname { get; set; }
         public string Lastname { get; set; }
         public string Email { get; set; }

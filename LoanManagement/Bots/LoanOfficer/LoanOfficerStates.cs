@@ -6,7 +6,16 @@ using System.Threading.Tasks;
 
 namespace LoanManagement.UI.Bots.LoanOfficer
 {
-    internal class LoanOfficerStates
+    public enum LoanOfficerStates
     {
+        MainMenu,
+        RejectLoan_Reason,
+        UpdateProfile_Username,
+        UpdateProfile_Password,
+        ReviewLoanApplication,
+        RejectLoanReason,
+        UpdateProfile_FullName,
+        UpdateProfile_Email,
+        UpdateProfile_Phone
     }
 }

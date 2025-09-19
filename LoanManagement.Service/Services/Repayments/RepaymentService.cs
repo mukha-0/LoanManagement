@@ -14,11 +14,19 @@ namespace LoanManagement.Service.Services.Repayments
     {
         private readonly IRepository<Repayment> repaymentRepository;
         private readonly IRepository<Loan> loanRepository;
+        private IRepaymentService repaymentService;
+
         public RepaymentService(DataAccess.Context.AppDBContext db)
         {
             repaymentRepository = new Repository<Repayment>();
             loanRepository = new Repository<Loan>();
         }
+
+        public RepaymentService(IRepaymentService repaymentService)
+        {
+            this.repaymentService = repaymentService;
+        }
+
         public async Task<decimal> CheckOutstandingBalance(int loanId)
         {
             var repayments = await repaymentRepository.SelectAsync(loanId);

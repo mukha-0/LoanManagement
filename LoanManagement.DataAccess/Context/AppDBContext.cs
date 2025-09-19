@@ -14,7 +14,7 @@ namespace LoanManagement.DataAccess.Context
         {
             optionsBuilder
                 .UseSqlServer(
-                "Server=ROOT;Database=LoanManagement3;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
+                "Server=ROOT;Database=LoanManagementFinal;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
                 );
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -13,8 +13,10 @@ namespace LoanManagement.Service.Services.Loans.Models
         public int TermInMonths { get; set; }
         public decimal InterestRate { get; set; }
         public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
-        public int CustomerId { get; set; }
-        public int ChatId { get; set; }
+        public int CustomerId
+        {
+            get; set;
+        }
+        public string? Purpose { get; set; }
     }
 }

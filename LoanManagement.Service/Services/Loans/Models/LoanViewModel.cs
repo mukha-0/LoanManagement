@@ -17,5 +17,6 @@ namespace LoanManagement.Service.Services.Loans.Models
         public DateTime EndDate { get; set; }
         public string Status { get; set; }
         public object AcceptedByOfficerUsername { get; set; }
+        public decimal OutstandingBalance { get; set; }
     }
 }

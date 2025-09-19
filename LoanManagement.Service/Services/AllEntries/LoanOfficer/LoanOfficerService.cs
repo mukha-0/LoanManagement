@@ -14,11 +14,17 @@ namespace LoanManagement.Service.Services.AllEntries.LoanOfficer
     {
         private readonly IRepository<LoanOfficerr> officerRepository;
         private readonly IRepository<Loan> loanRepository;
+        private ILoanOfficerService officerService;
 
         public LoanOfficerService(DataAccess.Context.AppDBContext db)
         {
             officerRepository = new Repository<LoanOfficerr>();
             loanRepository = new Repository<Loan>();
+        }
+
+        public LoanOfficerService(ILoanOfficerService officerService)
+        {
+            this.officerService = officerService;
         }
 
         public async Task ApplyForLoanOfficer(OfficerCreateModel officerCreateModel)

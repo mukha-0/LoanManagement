@@ -1,299 +1,265 @@
-﻿using LoanManagement.Service.Services.AllEntries.Users.Models;
+﻿using Telegram.Bot;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
+using LoanManagement.Service.Services.AllEntries.LoanOfficer;
+using LoanManagement.Service.Services.AllEntries.Users.Models;
 using LoanManagement.Service.Services.AllEntries.Users;
 using LoanManagement.Service.Services.Loans.Models;
 using LoanManagement.Service.Services.Loans;
 using LoanManagement.Service.Services.Repayments.Models;
 using LoanManagement.Service.Services.Repayments;
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
-using LoanManagement.DataAccess.Context;
-using LoanManagement.Bots;
 
-namespace LoanManagement.Bot
+namespace LoanManagement.Bots.UserBot
 {
-    public static class UserBotCommands
+    public class UserBotCommands
     {
-        private static IUserService? _userService;
-        private static ILoanService? _loanService;
-        private static IRepaymentService? _repaymentService;
+        private readonly IUserService _userService;
+        private readonly ILoanService _loanService;
+        private readonly IRepaymentService _repaymentService;
+        private readonly ILoanOfficerService _officerService;
 
-        // state handling
-        private static readonly Dictionary<long, string> _userStates = new();
-        private static readonly Dictionary<long, object> _tempData = new();
-        private static TelegramBotClient _bot = null!;
+        private Dictionary<long, string> _userStates = new();
+        private Dictionary<long, dynamic> _tempData = new();
 
-        // track logged in user
-        private static readonly Dictionary<long, int> _loggedInUsers = new();
-
-        public static void Configure(
+        public UserBotCommands(
             IUserService userService,
             ILoanService loanService,
-            IRepaymentService repaymentService)
+            IRepaymentService repaymentService,
+            ILoanOfficerService officerService)
         {
             _userService = userService;
             _loanService = loanService;
             _repaymentService = repaymentService;
+            _officerService = officerService;
         }
 
-        public static async Task ProcessCommand(TelegramBotClient bot, Message message, AppDBContext db)
-        {
-            var chatId = message.Chat.Id;
-            var text = message.Text!.Trim();
-
-            if (text == "/start")
-            {
-                var keyboard = new InlineKeyboardMarkup(new[]
-                {
-                    new []
-                    {
-                        InlineKeyboardButton.WithCallbackData("Apply for Loan", "apply_loan"),
-                        InlineKeyboardButton.WithCallbackData("My Active Loans", "active_loans")
-                    },
-                    new []
-                    {
-                        InlineKeyboardButton.WithCallbackData("Loan History", "loan_history"),
-                        InlineKeyboardButton.WithCallbackData("Make Repayment", "repayment")
-                    },
-                    new []
-                    {
-                        InlineKeyboardButton.WithCallbackData("Profile Settings", "profile"),
-                    }
-                });
-
-                await bot.SendMessage(chatId, "Welcome to the Loan System User Bot!\nChoose an option:", replyMarkup: keyboard);
-            }
-            else
-            {
-                await bot.SendMessage(chatId, "Unknown command. Use /start to open the menu.");
-            }
-        }
-
-        public static async Task ProcessCommand(ITelegramBotClient bot, Message message)
-        {
-            var chatId = message.Chat.Id;
-            var text = message.Text?.Trim();
-
-            if (_userStates.ContainsKey(chatId))
-            {
-                await HandleState(bot, message, chatId, text!);
-                return;
-            }
-
-            switch (text)
-            {
-                case "/start":
-                    await ShowMainMenu(bot, chatId);
-                    break;
-
-                case "👤 Account":
-                    await ShowAccountMenu(bot, chatId);
-                    break;
-
-                case "💰 Loans":
-                    await ShowLoanMenu(bot, chatId);
-                    break;
-
-                case "💳 Repayments":
-                    await ShowRepaymentMenu(bot, chatId);
-                    break;
-
-                default:
-                    await bot.SendMessage(chatId, "❌ Unknown command. Use /start to see the menu.");
-                    break;
-            }
-        }
-
-        private static async Task ShowMainMenu(ITelegramBotClient bot, long chatId)
-        {
-            var keyboard = new ReplyKeyboardMarkup(new[]
-            {
-                new[] { new KeyboardButton("👤 Account") },
-                new[] { new KeyboardButton("💰 Loans"), new KeyboardButton("💳 Repayments") }
-            })
-            { ResizeKeyboard = true };
-
-            await bot.SendMessage(chatId, "📌 User Menu:", replyMarkup: keyboard);
-        }
-
-        #region Account
-        private static async Task ShowAccountMenu(ITelegramBotClient bot, long chatId)
-        {
-            var keyboard = new ReplyKeyboardMarkup(new[]
-            {
-                new[] { new KeyboardButton("🔑 Register"), new KeyboardButton("🔓 Login") },
-                new[] { new KeyboardButton("✏️ Change Password"), new KeyboardButton("🗑 Delete Account") },
-                new[] { new KeyboardButton("⬅️ Back") }
-            })
-            { ResizeKeyboard = true };
-
-            await bot.SendMessage(chatId, "👤 Account Menu:", replyMarkup: keyboard);
-        }
-        #endregion
-
-        #region Loans
-        private static async Task ShowLoanMenu(ITelegramBotClient bot, long chatId)
-        {
-            var keyboard = new ReplyKeyboardMarkup(new[]
-            {
-                new[] { new KeyboardButton("📝 Apply Loan"), new KeyboardButton("📜 Loan History") },
-                new[] { new KeyboardButton("📊 Active Loans"), new KeyboardButton("💵 Calculate Interest") },
-                new[] { new KeyboardButton("⬅️ Back") }
-            })
-            { ResizeKeyboard = true };
-
-            await bot.SendMessage(chatId, "💰 Loan Menu:", replyMarkup: keyboard);
-        }
-        #endregion
-
-        #region Repayments
-        private static async Task ShowRepaymentMenu(ITelegramBotClient bot, long chatId)
-        {
-            var keyboard = new ReplyKeyboardMarkup(new[]
-            {
-                new[] { new KeyboardButton("💳 Make Repayment"), new KeyboardButton("📅 Repayment Schedule") },
-                new[] { new KeyboardButton("📜 My Repayments"), new KeyboardButton("⚖️ Outstanding Balance") },
-                new[] { new KeyboardButton("⬅️ Back") }
-            })
-            { ResizeKeyboard = true };
-
-            await bot.SendMessage(chatId, "💳 Repayment Menu:", replyMarkup: keyboard);
-        }
-        #endregion
-
-        private static async Task HandleState(ITelegramBotClient bot, Message message, long chatId, string text)
-        {
-            var state = _userStates[chatId];
-
-            switch (state)
-            {
-                // ---------- Account ----------
-                case "Register_Username":
-                    _tempData[chatId] = new UserRegisterModel { UserName = text };
-                    _userStates[chatId] = "Register_Password";
-                    await bot.SendMessage(chatId, "Enter a password:");
-                    break;
-
-                case "Register_Password":
-                    if (_tempData[chatId] is UserRegisterModel reg)
-                    {
-                        reg.PasswordHash = text;
-                        await _userService!.RegisterUserAsync(reg);
-                        await bot.SendMessage(chatId, "✅ User registered!");
-                    }
-                    ResetState(chatId);
-                    await ShowMainMenu(bot, chatId);
-                    break;
-
-                case "Login_Username":
-                    _tempData[chatId] = new UserLoginModel { Username = text };
-                    _userStates[chatId] = "Login_Password";
-                    await bot.SendMessage(chatId, "Enter your password:");
-                    break;
-
-                case "Login_Password":
-                    if (_tempData[chatId] is UserLoginModel login)
-                    {
-                        login.Password = text;
-                        var user = await _userService!.LoginAsync(login);
-                        if (user != null)
-                        {
-                            _loggedInUsers[chatId] = user.UserId;
-                            await bot.SendMessage(chatId, "🔓 Login successful!");
-                        }
-                        else
-                        {
-                            await bot.SendMessage(chatId, "❌ Invalid credentials.");
-                        }
-                    }
-                    ResetState(chatId);
-                    await ShowMainMenu(bot, chatId);
-                    break;
-
-                case "ChangePassword":
-                    if (_loggedInUsers.ContainsKey(chatId))
-                    {
-                        var userId = _loggedInUsers[chatId];
-                        var update = new UserUpdateModel { Password = text };
-                        await _userService!.ChangePasswordAsync(update, userId);
-                        await bot.SendMessage(chatId, "✅ Password updated.");
-                    }
-                    else
-                        await bot.SendMessage(chatId, "❌ Please login first.");
-                    ResetState(chatId);
-                    await ShowMainMenu(bot, chatId);
-                    break;
-
-                // ---------- Loan ----------
-                case "ApplyLoan_Amount":
-                    var loanModel = new LoanCreateModel { Amount = decimal.Parse(text) };
-                    loanModel.CustomerId = _loggedInUsers[chatId];
-                    await _loanService!.ApplyForLoanAsync(loanModel);
-                    await bot.SendMessage(chatId, "📝 Loan application submitted.");
-                    ResetState(chatId);
-                    await ShowMainMenu(bot, chatId);
-                    break;
-
-                // ---------- Repayments ----------
-                case "MakeRepayment_Amount":
-                    if (_loggedInUsers.ContainsKey(chatId))
-                    {
-                        var repayment = new RepaymentCreateModel
-                        {
-                            UserId = _loggedInUsers[chatId],
-                            Amount = decimal.Parse(text)
-                        };
-                        await _repaymentService!.MakeRepaymentAsync(repayment);
-                        await bot.SendMessage(chatId, "💳 Repayment successful.");
-                    }
-                    else
-                        await bot.SendMessage(chatId, "❌ Please login first.");
-                    ResetState(chatId);
-                    await ShowMainMenu(bot, chatId);
-                    break;
-            }
-        }
-        public static async Task ProcessCallback(TelegramBotClient telegramBotClient, CallbackQuery callback, AppDBContext appDB)
+        // -------------------- Handle Updates --------------------
+        public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
             try
             {
-                var chatId = callback.Message.Chat.Id;
-
-                switch (callback.Data)
+                if (update.Type == UpdateType.Message && update.Message!.Type == MessageType.Text)
                 {
-                    case "apply_loan":
-                        _userStates[chatId] = "apply_loan_amount";
-                        await _bot.SendMessage(chatId, "💵 Enter loan amount to apply:");
-                        break;
-                    case "make_payment":
-                        _userStates[chatId] = "make_payment_loanid";
-                        await _bot.SendMessage(chatId, "💳 Enter Loan ID to make payment for:");
-                        break;
+                    string message = update.Message.Text;
+                    long chatId = update.Message.Chat.Id;
 
-                    case "settings":
-                        await ShowAccountMenu(_bot, chatId);
-                        break;
+                    if (!_userStates.ContainsKey(chatId))
+                        _userStates[chatId] = "MainMenu";
 
-                    case "delete_account":
-                        _userStates[chatId] = "delete_account_confirm";
-                        await _bot.SendMessage(chatId, "⚠️ Type 'CONFIRM' to delete your account. This cannot be undone.");
-                        break;
-
-                    default:
-                        await _bot.SendMessage(chatId, "⚠️ Unknown option.");
-                        break;
+                    await ProcessMessageAsync(botClient, chatId, message);
+                }
+                else if (update.Type == UpdateType.CallbackQuery)
+                {
+                    long chatId = update.CallbackQuery.Message.Chat.Id;
+                    await ProcessCallback(botClient, update.CallbackQuery);
                 }
             }
             catch (Exception ex)
             {
-                await _bot.SendMessage(callback.Message.Chat.Id, $"❌ Error: {ex.Message}");
+                Console.WriteLine($"UserBot Error: {ex.Message}");
             }
         }
 
-        private static void ResetState(long chatId)
+        public Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
         {
-            _userStates.Remove(chatId);
-            _tempData.Remove(chatId);
+            Console.WriteLine($"UserBot Error: {exception.Message}");
+            return Task.CompletedTask;
+        }
+
+        // -------------------- Process Text Messages --------------------
+        private async Task ProcessMessageAsync(ITelegramBotClient botClient, long chatId, string message)
+        {
+            string state = _userStates[chatId];
+
+            switch (state)
+            {
+                case "MainMenu":
+                    await ShowMainMenu(botClient, chatId);
+                    break;
+
+                case "ApplyingLoan":
+                    await HandleLoanApplication(botClient, chatId, message);
+                    break;
+
+                case "MakingPayment":
+                    await HandlePayment(botClient, chatId, message);
+                    break;
+
+                case "UpdatingProfile":
+                    await HandleProfileUpdate(botClient, chatId, message);
+                    break;
+
+                default:
+                    await botClient.SendMessage(chatId, "Unknown command. Use /start to return to main menu.");
+                    _userStates[chatId] = "MainMenu";
+                    break;
+            }
+        }
+
+        // -------------------- Main Menu --------------------
+        private async Task ShowMainMenu(ITelegramBotClient botClient, long chatId)
+        {
+            InlineKeyboardMarkup buttons = new(new[]
+            {
+                new [] { InlineKeyboardButton.WithCallbackData("Apply for Loan", "ApplyLoan") },
+                new [] { InlineKeyboardButton.WithCallbackData("Active Loans", "ActiveLoans") },
+                new [] { InlineKeyboardButton.WithCallbackData("Loan History", "LoanHistory") },
+                new [] { InlineKeyboardButton.WithCallbackData("Profile Settings", "ProfileSettings") }
+            });
+
+            await botClient.SendMessage(chatId, "User Menu:", replyMarkup: buttons);
+        }
+
+        // -------------------- Process Callback Buttons --------------------
+        private async Task ProcessCallback(ITelegramBotClient botClient, Telegram.Bot.Types.CallbackQuery callback)
+        {
+            long chatId = callback.Message.Chat.Id;
+            string data = callback.Data;
+
+            switch (data)
+            {
+                case "ApplyLoan":
+                    _userStates[chatId] = "ApplyingLoan";
+                    _tempData[chatId] = new LoanCreateModel();
+                    await botClient.SendMessage(chatId, "Enter loan amount:");
+                    break;
+
+                case "ActiveLoans":
+                    var activeLoans = await _loanService.GetActiveLoansByUserAsync(chatId.ToString());
+                    if (!activeLoans.Any())
+                        await botClient.SendMessage(chatId, "No active loans found.");
+                    else
+                    {
+                        string loansList = string.Join("\n", activeLoans.Select(l => $"LoanId: {l.Id}, Amount: {l.Amount}, Status: {l.Status}"));
+                        await botClient.SendMessage(chatId, loansList);
+                        InlineKeyboardMarkup payButton = new(new[]
+                        {
+                            new [] { InlineKeyboardButton.WithCallbackData("Make Payment", "MakePayment") }
+                        });
+                        await botClient.SendMessage(chatId, "Select an action:", replyMarkup: payButton);
+                    }
+                    break;
+
+                case "LoanHistory":
+                    var history = await _loanService.GetLoanHistoryOfUserAsync(chatId.ToString());
+                    if (!history.Any())
+                        await botClient.SendMessage(chatId, "No loan history found.");
+                    else
+                    {
+                        string histList = string.Join("\n", history.Select(l => $"LoanId: {l.LoanId}, Amount: {l.Amount}, Status: {l.Status}"));
+                        await botClient.SendMessage(chatId, histList);
+                    }
+                    break;
+
+                case "ProfileSettings":
+                    _userStates[chatId] = "UpdatingProfile";
+                    await botClient.SendMessage(chatId, "Enter new full name (or type 'skip' to leave unchanged):");
+                    break;
+
+                case "MakePayment":
+                    _userStates[chatId] = "MakingPayment";
+                    await botClient.SendMessage(chatId, "Enter Loan ID for payment:");
+                    break;
+
+                default:
+                    await botClient.SendMessage(chatId, "Unknown command. Use /start to return to main menu.");
+                    break;
+            }
+        }
+
+        // -------------------- Loan Application --------------------
+        private async Task HandleLoanApplication(ITelegramBotClient botClient, long chatId, string message)
+        {
+            var tempLoan = _tempData[chatId] as LoanCreateModel;
+
+            if (tempLoan.Amount == 0)
+            {
+                if (decimal.TryParse(message, out decimal amount))
+                {
+                    tempLoan.Amount = amount;
+                    await botClient.SendMessage(chatId, "Enter loan duration in months:");
+                }
+                else
+                {
+                    await botClient.SendMessage(chatId, "Invalid amount. Enter numeric value:");
+                }
+            }
+            else if (tempLoan.TermInMonths == 0)
+            {
+                if (int.TryParse(message, out int months))
+                {
+                    tempLoan.TermInMonths = months;
+                    await botClient.SendMessage(chatId, "Enter purpose of loan:");
+                }
+                else
+                {
+                    await botClient.SendMessage(chatId, "Invalid input. Enter number of months:");
+                }
+            }
+            else if (string.IsNullOrEmpty(tempLoan.Purpose))
+            {
+                tempLoan.Purpose = message;
+                tempLoan.CustomerId = (int)chatId;
+
+                await _loanService.ApplyForLoanAsync(tempLoan);
+                await botClient.SendMessage(chatId, $"Loan application submitted successfully! Amount: {tempLoan.Amount}, Duration: {tempLoan.TermInMonths} months, Purpose: {tempLoan.Purpose}");
+                _userStates[chatId] = "MainMenu";
+            }
+        }
+
+        // -------------------- Payment --------------------
+        private async Task HandlePayment(ITelegramBotClient botClient, long chatId, string message)
+        {
+            var tempPay = _tempData.ContainsKey(chatId) ? _tempData[chatId] as RepaymentCreateModel : new RepaymentCreateModel();
+
+            if (tempPay.LoanId == 0)
+            {
+                if (int.TryParse(message, out int loanId))
+                {
+                    tempPay.LoanId = loanId;
+                    await botClient.SendMessage(chatId, "Enter payment amount:");
+                }
+                else
+                {
+                    await botClient.SendMessage(chatId, "Invalid Loan ID. Enter a number:");
+                }
+            }
+            else if (tempPay.Amount == 0)
+            {
+                if (decimal.TryParse(message, out decimal amount))
+                {
+                    tempPay.Amount = amount;
+                    tempPay.UserId = (int)chatId; // Replace with actual user ID
+                    await _repaymentService.MakeRepaymentAsync(tempPay);
+                    await botClient.SendMessage(chatId, $"Payment of {amount} made successfully for Loan {tempPay.LoanId}");
+                    _userStates[chatId] = "MainMenu";
+                }
+                else
+                {
+                    await botClient.SendMessage(chatId, "Invalid amount. Enter numeric value:");
+                }
+            }
+        }
+
+        // -------------------- Profile Update --------------------
+        private async Task HandleProfileUpdate(ITelegramBotClient botClient, long chatId, string message)
+        {
+            var user = await _userService.GetUserByIdAsync((int)chatId); // Replace with actual mapping if needed
+
+            if (user == null)
+            {
+                await botClient.SendMessage(chatId, "User not found.");
+                _userStates[chatId] = "MainMenu";
+                return;
+            }
+
+            if (!string.Equals(message, "skip", StringComparison.OrdinalIgnoreCase))
+                user.FullName = message;
+
+            await _userService.ChangePasswordAsync(new UserUpdateModel { FullName = user.FullName }, user.UserId);
+            await botClient.SendMessage(chatId, "Profile updated successfully.");
+            _userStates[chatId] = "MainMenu";
         }
     }
 }

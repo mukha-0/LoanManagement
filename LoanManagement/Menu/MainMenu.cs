@@ -1,74 +1,109 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
-//using LoanManagement.Bot;
-//using LoanManagement.DataAccess.Context;
-//using Microsoft.EntityFrameworkCore;
-//using Telegram.Bot;
-//using Telegram.Bot.Types.Enums;
-//using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+﻿using Telegram.Bot;
+using LoanManagement.Bots.AdminBot;
+using LoanManagement.Bots.LoanOfficerBot;
+using LoanManagement.Bots.UserBot;
+using LoanManagement.Service.Services.AllEntries.Admin;
+using LoanManagement.Service.Services.AllEntries.LoanOfficer;
+using LoanManagement.Service.Services.AllEntries.Users;
+using LoanManagement.Service.Services.AllEntries;
+using LoanManagement.Service.Services.Loans;
+using LoanManagement.Service.Services.Repayments;
+using LoanManagement.Service.Services.Reports;
 
-//namespace LoanManagement.UI.Menu
-//{
-//    public class MainMenu
-//    {
-//        private TelegramBotClient _botClient;
+namespace LoanManagement.Bots
+{
 
-//        public void Start()
-//        {
-//            // ✅ Use your real token
-//            string token = "YOUR_USER_BOT_TOKEN_HERE";
+    public static class BotRunner
+    {
+        private readonly UserService _userService;
+        private readonly LoanOfficerService _loanOfficerService;
+        private readonly AdminService _adminService;
 
-//            _botClient = new TelegramBotClient(token);
+        public BotRunner()
+        {
+            _userService = new UserService();
+            _loanOfficerService = new LoanOfficerService();
+            _adminService = new AdminService(_adminService);
+        }
 
-//            var me = _botClient.GetMe().Result;
-//            Console.WriteLine($"UserBot @{me.Username} is running...");
+        private const string AdminToken = "8120631864:AAG6AczJc4SRuwV_MGet8iE9nGp0gLZ3MTQ";
+        private const string OfficerToken = "8428221151:AAF98HGV920PtzHzQIyOlMhFmvWbMd8f7EU";
+        private const string UserToken = "8360128523:AAEp4QApXZYCNBmFb55MV_phCBZo0eHOblo";
+        public static void RunBot()
+        {
+            RunAdminBot();
+            RunLoanOfficerBot();
+            RunUserBot();
 
-//            _botClient.StartReceiving(
-//                HandleUpdateAsync,
-//                HandleErrorAsync
-//            );
+            Console.WriteLine("All bots are running...");
+            Console.ReadLine();
+        }
 
-//            Console.WriteLine("Press any key to stop...");
-//            Console.ReadKey();
-//        }
+        private static void RunAdminBot()
+        {
+            var adminBotClient = new TelegramBotClient(AdminToken);
 
-//        private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
-//        {
-//            try
-//            {
-//                using (var db = new AppDBContext()) // ✅ use your existing context
-//                {
-//                    if (update.Type == UpdateType.Message && update.Message!.Type == MessageType.Text)
-//                    {
-//                        await UserBotCommands.ProcessCommand(
-//                            (TelegramBotClient)botClient,
-//                            update.Message,
-//                            db
-//                        );
-//                    }
-//                    else if (update.Type == UpdateType.CallbackQuery)
-//                    {
-//                        await UserBotCommands.ProcessCallback(
-//                            (TelegramBotClient)botClient,
-//                            update.CallbackQuery!,
-//                            db
-//                        );
-//                    }
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                Console.WriteLine($"❌ Error: {ex.Message}");
-//            }
-//        }
+            var adminCommands = new AdminBotCommands(
+                new AdminService(),
+                new UserService(),
+                new LoanService(),
+                new RepaymentService(),
+                new ReportService(),
+                new LoanOfficerService()
+            );
 
-//        private Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
-//        {
-//            Console.WriteLine($"⚠️ Bot error: {exception.Message}");
-//            return Task.CompletedTask;
-//        }
-//    }
-//}
+            var cts = new CancellationTokenSource();
+
+            adminBotClient.StartReceiving(
+                updateHandler: adminCommands.HandleUpdateAsync,
+                errorHandler: adminCommands.HandleErrorAsync,
+                cancellationToken: cts.Token
+            );
+
+            Console.WriteLine("Admin Bot started.");
+        }
+
+        private static void RunLoanOfficerBot()
+        {
+            var officerBotClient = new TelegramBotClient(OfficerToken);
+
+            var officerCommands = new LoanOfficerBotCommands(
+                new LoanService(),
+                new LoanOfficerService(),
+                new RepaymentService()
+            );
+
+            var cts = new CancellationTokenSource();
+
+            officerBotClient.StartReceiving(
+                updateHandler: officerCommands.HandleUpdateAsync,
+                errorHandler: officerCommands.HandleErrorAsync,
+                cancellationToken: cts.Token
+            );
+
+            Console.WriteLine("Loan Officer Bot started.");
+        }
+
+        private static void RunUserBot()
+        {
+            var userBotClient = new TelegramBotClient(UserToken);
+
+            var userCommands = new UserBotCommands(
+                new UserService(),
+                new LoanService(),
+                new RepaymentService(),
+                new LoanOfficerService()
+            );
+
+            var cts = new CancellationTokenSource();
+
+            userBotClient.StartReceiving(
+                updateHandler: userCommands.HandleUpdateAsync,
+                errorHandler: userCommands.HandleErrorAsync,
+                cancellationToken: cts.Token
+            );
+
+            Console.WriteLine("User Bot started.");
+        }
+    }
+}
