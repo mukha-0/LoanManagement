@@ -11,5 +11,6 @@ namespace LoanManagement.Service.Services.Repayments.Models
         public int LoanId { get; set; }
         public decimal Amount { get; set; }
         public DateTime PaymentDate { get; set; }
+        public int UserId { get; set; }
     }
 }

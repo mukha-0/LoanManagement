@@ -1,34 +1,68 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿// LoanManagement/Bots/LoanOfficerBot/LoanOfficerHandler.cs
+using System;
+using System.Threading;
 using System.Threading.Tasks;
-using Telegram.Bot.Types.Enums;
+using LoanManagement.DataAccess.Context;
+using LoanManagement.Service.Services.AllEntries.Admin;
+using LoanManagement.Service.Services.AllEntries.LoanOfficer;
+using LoanManagement.Service.Services.Loans;
+using LoanManagement.Service.Services.Repayments;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
-namespace LoanManagement.UI.Bots.LoanOfficer
+namespace LoanManagement.Bots.LoanOfficerBot
 {
-    public class LoanOfficerBotHandler
+    public class LoanOfficerHandler
     {
-        private readonly TelegramBotClient _botClient;
+        private readonly TelegramBotClient _bot;
+        private readonly LoanOfficerCommands _commands;
 
-        public LoanOfficerBotHandler(TelegramBotClient botClient)
+        public LoanOfficerHandler(TelegramBotClient bot,
+            ILoanOfficerService officerService,
+            ILoanService loanService,
+            IAdminService adminService,
+            IRepaymentService repaymentService)
         {
-            _botClient = botClient;
+            _bot = bot;
         }
 
+        // Updated HandleUpdateAsync method to include the missing AppDBContext parameter for ProcessCallback
         public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-            if (update != null && update.Message != null && update.Message.Type == MessageType.Text)
+            if (update is null) return;
+
+            if (update.Message != null && update.Message.Type == MessageType.Text)
             {
-                await LoanOfficerBotCommands.ProcessCommand(_botClient, update.Message);
+                await _commands.ProcessMessage(update.Message);
             }
+            else if (update.CallbackQuery != null)
+            {
+                // Assuming AppDBContext is available in the current scope or can be resolved
+                AppDBContext dbContext = await ResolveAppDBContext(); // Replace with actual method to get AppDBContext
+                await LoanOfficerCommands.ProcessCallback(_bot, update.CallbackQuery, dbContext);
+            }
+        }
+
+        // Updated the return type of ResolveAppDBContext to Task<AppDBContext> to fix CS1983 error.
+        private static async Task<AppDBContext> ResolveAppDBContext()
+        {
+            AppDBContext context = new AppDBContext();
+            await context.Database.EnsureCreatedAsync();
+            var contextt = new AppDBContext
+            {
+                Admins = context.Admins,
+                LoanOfficers = context.LoanOfficers,
+                Users = context.Users,
+                Loans = context.Loans,
+                Repayments = context.Repayments
+            };
+            return contextt;
         }
 
         public Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
         {
-            Console.WriteLine($"Error: {exception.Message}");
+            Console.WriteLine($"LoanOfficer bot error: {exception}");
             return Task.CompletedTask;
         }
     }

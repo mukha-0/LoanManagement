@@ -14,7 +14,7 @@ namespace LoanManagement.Service.Services.AllEntries.Users
     public class UserService : IUserService
     {
         private readonly IRepository<User> userRepositoy;
-        public UserService()
+        public UserService(DataAccess.Context.AppDBContext db)
         {
             userRepositoy = new Repository<User>();
         }

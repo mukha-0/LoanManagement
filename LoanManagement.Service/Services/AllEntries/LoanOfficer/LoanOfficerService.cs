@@ -15,7 +15,7 @@ namespace LoanManagement.Service.Services.AllEntries.LoanOfficer
         private readonly IRepository<LoanOfficerr> officerRepository;
         private readonly IRepository<Loan> loanRepository;
 
-        public LoanOfficerService()
+        public LoanOfficerService(DataAccess.Context.AppDBContext db)
         {
             officerRepository = new Repository<LoanOfficerr>();
             loanRepository = new Repository<Loan>();

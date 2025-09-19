@@ -9,12 +9,12 @@ using LoanManagement.Service.Services.AllEntries.Admin;
 
 namespace LoanManagement.Service.Services.AllEntries
 {
-    public class AdminService : IAdminModel
+    public class AdminService : IAdminService
     {
         private readonly IRepository<Adminn> adminRepository;
         private readonly IRepository<User> userRepository;
         private readonly IRepository<LoanOfficerr> officerRepository;
-        public AdminService()
+        public AdminService(DataAccess.Context.AppDBContext db)
         {
             adminRepository = new Repository<Adminn>();
             userRepository = new Repository<User>();

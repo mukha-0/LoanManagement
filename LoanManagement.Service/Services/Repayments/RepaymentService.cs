@@ -14,7 +14,7 @@ namespace LoanManagement.Service.Services.Repayments
     {
         private readonly IRepository<Repayment> repaymentRepository;
         private readonly IRepository<Loan> loanRepository;
-        public RepaymentService()
+        public RepaymentService(DataAccess.Context.AppDBContext db)
         {
             repaymentRepository = new Repository<Repayment>();
             loanRepository = new Repository<Loan>();

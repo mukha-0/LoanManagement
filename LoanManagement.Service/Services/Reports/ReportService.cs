@@ -18,7 +18,7 @@ namespace LoanManagement.Service.Services.Reports
         private readonly IRepository<ReportService> reportServiceRepository;
         private readonly IRepository<Loan> loanRepository;
         private readonly IRepository<User> userRepository;
-        public ReportService()
+        public ReportService(DataAccess.Context.AppDBContext db)
         {
             reportServiceRepository = new Repository<ReportService>();
             userRepository = new Repository<User>();

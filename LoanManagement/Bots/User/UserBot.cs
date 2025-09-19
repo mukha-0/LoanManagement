@@ -1,34 +1,33 @@
-﻿using System;
+﻿// LoanManagement/Bots/UserBot/UserBot.cs
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
+using LoanManagement.Service.Services.AllEntries.Users;
+using LoanManagement.Service.Services.Loans;
+using LoanManagement.Service.Services.Repayments;
 using Telegram.Bot;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
-namespace LoanManagement.UI.Bots.User
+namespace LoanManagement.Bots.UserBot
 {
     public class UserBot
     {
-        private readonly TelegramBotClient _botClient;
+        private readonly TelegramBotClient _bot;
         private readonly UserBotHandler _handler;
 
-        public UserBot(string token)
+        public UserBot(string token, IUserService userService, ILoanService loanService, IRepaymentService repaymentService)
         {
-            _botClient = new TelegramBotClient(token);
-            _handler = new UserBotHandler(_botClient);
+            _bot = new TelegramBotClient(token);
+            _handler = new UserBotHandler(_bot, userService, loanService, repaymentService);
         }
 
         public void Start()
         {
             var cts = new CancellationTokenSource();
-
-            _botClient.StartReceiving(
-                updateHandler: _handler.HandleUpdateAsync,
-                errorHandler: _handler.HandleErrorAsync,
-                cancellationToken: cts.Token
-            );
-
-            Console.WriteLine("User Bot is running...");
+            _bot.StartReceiving(_handler.HandleUpdateAsync, _handler.HandleErrorAsync, cancellationToken: cts.Token);
+            Console.WriteLine("User Bot running. Press Enter to stop.");
             Console.ReadLine();
             cts.Cancel();
         }

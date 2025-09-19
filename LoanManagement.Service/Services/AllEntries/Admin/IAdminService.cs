@@ -7,7 +7,7 @@ using LoanManagement.Domain.Entities;
 
 namespace LoanManagement.Service.Services.AllEntries.Admin
 {
-    public interface IAdminModel
+    public interface IAdminService
     {
         Task<IEnumerable<object>> GetAllUsersAsync();
         Task<IEnumerable<object>> GetAllOfficersAsync();
